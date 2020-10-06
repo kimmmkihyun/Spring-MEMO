@@ -1,0 +1,213 @@
+annotation 정리
+@Componenet : 객체
+@override	: 부모메서드
+@ModelAttribute	: 객체 별칭
+@Autowired	: 객체와 연결해줄 때
+@Qualifier	: 참조변수에 대입
+@controller	: Controller역할  
+@RequestParam	: 넘어오는 값을 받을 때
+@RequestMapping	: url 연결
+
+@NotEmpty	: 유효성 검사할 때 입력안한경우
+@Valid	:
+@Length	: 유효성 검사할 때 길이 설정
+
+	
+WEB-INF 폴더밑에 있는 jsp는 마음대로 실행 불가능  => Controller를 통해서 실행해야 한다.
+jsp파일 만드는 곳 : webapp ( = WebContent )
+바로 실행하고 싶은 jsp파일은 webapp찍고 만들어야 한다.
+	
+	
+	Controller를 통한 실행방법 : 프로젝트 찍고 run on server -> 주소창에  RequestMapping설정 값 입력 -> return 값에 설정된 위치에 파일이 실행된다
+	
+	
+	
+<!-- 
+aop:config   aop 설정을 하겠다
+aop:aspect   공통사항(로그인, 로그아웃, DB작업 등등)
+pointcut     핵심사항(어디)
+advice       before, after
+joinpoint    aspect 적용 가능한 지점들의 모음
+ -->
+ 
+
+	
+
+
+		
+<!-- AOP 설정 -->
+pom.xml에 아래코드를 작성해야 한다.
+
+		<dependency>
+			<groupId>org.aspectj</groupId>
+			<artifactId>aspectjweaver</artifactId>
+			<version>1.6.11</version>
+		</dependency>
+		
+한글처리 하는 코드!!   -> web.xml에 넣어야 한다
+	
+	<filter>
+		<filter-name>encodingFilter</filter-name>
+		<filter-class>
+			org.springframework.web.filter.CharacterEncodingFilter
+		</filter-class>
+		<init-param>
+			<param-name>encoding</param-name>
+			<param-value>UTF-8</param-value>
+		</init-param>
+		<init-param>
+			<param-name>forceEncoding</param-name>
+			<param-value>true</param-value>
+		</init-param>
+	</filter>
+
+
+	<filter-mapping>
+		<filter-name>encodingFilter</filter-name>	
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+	
+	<!-- 유효성 검사   poem.xml - dependency에 -->
+		
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-validator</artifactId>
+			<version>4.2.0.Final</version>		
+		</dependency>
+		
+		<dependency>
+			<groupId>javax.xml.bind</groupId>
+			<artifactId>jaxb-api</artifactId>
+			<version>2.2.8</version>		
+		</dependency>
+		
+ 
+ <!-- DB작업  pom.xml -->
+		
+		<dependency>
+			<groupId>com.oracle</groupId>
+			<artifactId>ojdbc8</artifactId>
+			<version>12.2.0</version>
+		</dependency>
+	
+	<!-- datasource 관련  DBCP -->
+		<dependency>
+			<groupId>commons-dbcp</groupId>
+			<artifactId>commons-dbcp</artifactId>
+			<version>1.4</version>
+		</dependency>
+
+		<!-- 마이바티스 관련 -->
+		<dependency>
+			<groupId>org.mybatis</groupId>
+			<artifactId>mybatis</artifactId>
+			<version>3.1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.mybatis</groupId>
+			<artifactId>mybatis-spring</artifactId>
+			<version>1.1.0</version>
+		</dependency>
+		
+
+	
+	1. pom.xml에 dependency 6개 +  파일업로드 두개
+	<dependency>
+			<groupId>commons-fileupload</groupId>
+			<artifactId>commons-fileupload</artifactId>
+			<version>1.2.2</version>
+			<scope>runtime</scope>
+	</dependency> 
+	<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>1.3.2</version>
+			<scope>runtime</scope>
+	</dependency>      
+	
+	
+	 
+	2. <!-- 내가 설정한 servlet-mapping   web.xml-->
+	<servlet>
+		<servlet-name>album</servlet-name>
+		<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+		<init-param>
+			<param-name>contextConfigLocation</param-name>
+			<param-value>/WEB-INF/spring/appServlet/album-servlet.xml</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+		
+	<servlet-mapping>
+		<servlet-name>album</servlet-name>
+		<url-pattern>*.ab</url-pattern>
+	</servlet-mapping>	
+	
+	3.album-servlet.xml에다가       +  파일업로드 관련 
+	<mvc:annotation-driven/> <!-- 유효성 검사 -->
+	
+	<bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="prefix" value="/WEB-INF/album/" />
+		<property name="suffix" value=".jsp" />
+	</bean>
+	
+	<context:component-scan base-package="album" />
+	
+	+++++
+	
+	
+	<bean id="multipartResolver"
+		class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		<property name="maxUploadSize" value="10485760" />
+		<property name="maxInMemorySize" value="10240" />
+		<property name="defaultEncoding" value="UTF-8" />
+	</bean>
+	
+	4.	<!-- root-context.xml에다가  DBCP(1,2) -->
+	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource">
+		<property name="driverClassName" value="oracle.jdbc.driver.OracleDriver"></property>
+		<property name="url" value="jdbc:oracle:thin:@localhost:1521:orcl"></property>
+		<property name="username" value="jspid"></property>
+		<property name="password" value="jsppw"></property>
+	</bean>
+	
+	<bean id="sqlSessionFactoryBean" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource"></property>
+		<property name="configLocation" value="classpath:/mybatis/SqlMapConfig.xml"></property>
+		
+	</bean>
+	
+	<bean id="sqlSessionTemplate" class="org.mybatis.spring.SqlSessionTemplate">
+		<constructor-arg ref="sqlSessionFactoryBean"></constructor-arg>
+	</bean>
+
+	
+<!--	 자바로 보면 이렇다	
+	BasicDataSource dataSource = new org.apache.commons.dbcp.BasicDataSource();
+	dataSource.setDriverClassName("oracle.jdbc.driver.OracleDriver");
+	dataSource.setUrl("jdbc:oracle:thin:@localhost:1521:orcl");
+	dataSource.setUsername("jspid");
+	dataSource.setPassword("jsppw");
+	
+	SqlSessionFactoryBean sqlSessionFactoryBean = new org.mybatis.spring.SqlSessionFactoryBean();
+	sqlSessionFactoryBean.setDataSource(dataSource);
+	sqlSessionFactoryBean.setConfigLocation(classpath:/album/mybatic/SqlMapConfig.xml);
+	sqlSessionFactoryBean.setMapperLocations(classpath:/album/mybatis/album.xml)
+	
+	SqlSessionTemplate sqlSessionTemplate = 
+	new org.mybatis.spring.SqlSessionTemplate(sqlSessionFactoryBean);	
+-->		
+	5. batis 패키지만들고 설정
+	<!-- SqlMapConfig.xml  별칭지정 -->
+
+	<configuration>
+		<typeAliases>
+			<typeAlias alias="MyAlbym" type="album.model.AlbumBean"/>
+		</typeAliases>
+	</configuration>
+	
+	
+	+++++++++++++++ 여기에 맵핑 설정하기~!!!!!!!!
+	https://mybatis.org/mybatis-3/ko/getting-started.html 
+	->여기 들어가서 하면 된다(처음설정할 때는) 이전게 있으면 복붙  앞에 3줄
+		
